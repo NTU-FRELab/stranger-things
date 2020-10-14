@@ -167,8 +167,6 @@ s + geom_violin(trim = FALSE)+
   scale_y_continuous(limits=c(100,1000))
 
 # ratio
-
-sf.res$ratio=sf.res$chlc.afdw/sf.res$chla.afdw
 ratio.plot=sf.res[,c('species','ratio')]
 s=ggplot(data=ratio.plot, aes(x=species, y=ratio, fill=species))
 ratio_main_title = expression(paste("Ratio chlorophylls", italic(" c/a")))
