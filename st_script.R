@@ -60,7 +60,6 @@ sf.res$chla.afdw = Ca*sf$V_extra/afdw  # ug chl / gafdw
 sf.res$chlb.afdw = Cb*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw 
 
-
 ##PROTEINS #proteins 1ML used for host by 5mL used for the zoox!!!!
 #
 #
