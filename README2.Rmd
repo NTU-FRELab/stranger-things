@@ -1,5 +1,5 @@
 ---
-title: "stranger-things"
+title: "Stranger Things"
 author: "Hsu et al."
 date: "2020/10/14"
 output: html_document
@@ -292,4 +292,56 @@ s + geom_violin(trim = FALSE)+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
+```
+
+#### Lipid
+```{r}
+lip.plot=sf.res[,c('species','lip.afdw')]
+s=ggplot(data=lip.plot, aes(x=species, y=lip.afdw, fill=species))
+lip_main_title = expression(paste("Lipid"))
+lip_y_title = expression(paste("lipid", ' [', 'g ' ,afdw^-1,']')) 
+s + geom_violin(trim = FALSE)+
+  geom_jitter(shape=16, position=position_jitter(0.1))+
+  labs(title= lip_main_title, x="Species", y=lip_y_title)+
+  theme_bw()+
+  theme(legend.position='none')+
+  theme(axis.text.x= element_text(face="italic"))+
+  theme(plot.title= element_text(hjust="0.5"))
+```
+
+#### Isotope
+```{r}
+Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
+
+isoH=sf[,c('species','H15N','H13C')]
+isoA=sf[,c('species','A15N','A13C')]
+
+carbon_title=expression(paste(delta^{13}, "C (\u2030)"))
+nitrogen_title=expression(paste(delta^{15}, "N (\u2030)"))
+
+ggscatterhist(
+  isoH, x = "H13C", y = "H15N",
+  color = "species", size = 3, alpha = 0.6,
+  palette = c("#F1796F", "#06BCBD"),
+  margin.plot = "boxplot",
+  margin.params = list(fill = "species", color = "black", size = 0.2),
+  title = 'Animal fraction', xlab = carbon_title, ylab = nitrogen_title,
+  legend = "bottom",
+  ylim=c(4.5,6.5),
+  xlim=c(-23,-17),
+  ggtheme = theme_bw()
+  )
+
+ggscatterhist(
+  isoA, x = "A13C", y = "A15N",
+  color = "species", size = 3, alpha = 0.6,
+  palette = c("#F1796F", "#06BCBD"),
+  margin.plot = "boxplot",
+  margin.params = list(fill = "species", color = "black", size = 0.2),
+  title = 'Algal fraction', xlab = carbon_title, ylab = nitrogen_title,
+  legend = "bottom",
+  ylim=c(4.5,6.5),
+  xlim=c(-23,-17),
+  ggtheme = theme_bw()
+)
 ```
