@@ -202,8 +202,7 @@ ggplot(compo, aes(x=species, y=percentage, fill=component))+
   theme(plot.title= element_text(hjust="0.5"))
 ```
 
-#### Chlorophyll
-##### chl a
+#### Chl a
 ```{r}
 chla.plot=sf.res[,c('species','chla.afdw')]
 s=ggplot(data=chla.plot, aes(x=species, y=chla.afdw, fill=species))
@@ -218,7 +217,7 @@ s + geom_violin(trim = FALSE)+
     theme(plot.title= element_text(hjust="0.5"))+
     scale_y_continuous(limits=c(500,3000))
 ```
-##### chl c
+#### Chl c
 ```{r}
 chlc.plot=sf.res[,c('species','chlc.afdw')]
 s=ggplot(data=chlc.plot, aes(x=species, y=chlc.afdw, fill=species))
@@ -233,7 +232,7 @@ s + geom_violin(trim = FALSE)+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(100,1000))
 ```
-##### ratio chl c / chl a
+#### Ratio chl c / chl a
 ```{r}
 ratio.plot=sf.res[,c('species','ratio')]
 s=ggplot(data=ratio.plot, aes(x=species, y=ratio, fill=species))
@@ -274,6 +273,21 @@ a.cell_y_title = expression(paste("chl", italic(' a'),' [',mu,'g ', cell^-1,']')
 s + geom_violin(trim = FALSE)+
   geom_jitter(shape=16, position=position_jitter(0.1))+
   labs(title= a.cell_main_title, x="Species", y=a.cell_y_title)+
+  theme_bw()+
+  theme(legend.position='none')+
+  theme(axis.text.x= element_text(face="italic"))+
+  theme(plot.title= element_text(hjust="0.5"))
+```
+
+#### Protein
+```{r}
+prot.plot=sf.res[,c('species','prot.afdw')]
+s=ggplot(data=prot.plot, aes(x=species, y=prot.afdw, fill=species))
+prot_main_title = expression(paste("Protein"))
+prot_y_title = expression(paste("protein", ' [',mu,'g ' ,afdw^-1,']')) 
+s + geom_violin(trim = FALSE)+
+  geom_jitter(shape=16, position=position_jitter(0.1))+
+  labs(title= prot_main_title, x="Species", y=prot_y_title)+
   theme_bw()+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
