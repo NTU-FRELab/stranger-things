@@ -59,8 +59,7 @@ Cc = -1.67*(sf$A2-sf$A1)-7.6*(sf$A3-sf$A1)+24.52*(sf$A4-sf$A1)
 sf.res$chla.afdw = Ca*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlb.afdw = Cb*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw 
-# sf.res$chlac.afdw = sf.res$chla.afdw + sf.res$chlc.afdw
-# sf.res$chla.cell = sf.res$chla.afdw/sf.res$cell.afdw
+
 
 ##PROTEINS #proteins 1ML used for host by 5mL used for the zoox!!!!
 #
@@ -90,24 +89,18 @@ sf.res$prot.afdw = sf.res$protH.afdw + sf.res$protZ.afdw
 # w0_l: dish
 # wt_l: dish + total sample
 # w1_l: dish + subsample
-# wa_l: dish + subsample (ashed)
 dw.lip10 = sf$w1_l - sf$w0_l
 dw.lip100 = sf$wt_l-sf$w0_l
 afdw.lip100 = dw.lip100*(sf.res$perc_om/100)
-# afdw.lip10 = sf$w1_l-sf$wa_l# afdw in 10%
-# afdw.lip100 = (sf$w1_l-sf$wa_l)*(dw.lip100/dw.lip10) # afdw in 100%
 sf.res$lip.cont = (sf$wplate1-sf$wplate0)*(dw.lip100/(dw.lip100-dw.lip10)) # g of lipid in 100% tissue
 sf.res$lip.afdw = sf.res$lip.cont/afdw.lip100 # g lipid / gafdw
-# sf.res$lip_per = sf.res$lip.afdw * afdw / dw * 100
-
 
 ### PLOT ###
 
 ## OM $ IM
 #OM
-perc_om.plot=sf.res[,c('species','perc_om')]
-ggplot(data = perc_om.plot, aes(x= species, y= perc_om, fill=species))
-s=ggplot(data=perc_om.plot, aes(x=species, y=perc_om, fill=species))
+perc_om.plot = sf.res[,c('species','perc_om')]
+s = ggplot(data=perc_om.plot, aes(x=species, y=perc_om, fill=species))
 perc_om_main_title = expression(paste("Organic Matter"))
 perc_om_y_title = expression(paste("organic matter", ' [%]')) 
 s + geom_violin(trim = FALSE)+
@@ -119,8 +112,7 @@ s + geom_violin(trim = FALSE)+
   theme(plot.title= element_text(hjust="0.5"))
 #IM
 perc_im.plot=sf.res[,c('species','perc_im')]
-ggplot(data = perc_im.plot, aes(x= species, y= perc_im, fill=species))
-s=ggplot(data=perc_im.plot, aes(x=species, y=perc_im, fill=species))
+s = ggplot(data=perc_im.plot, aes(x=species, y=perc_im, fill=species))
 perc_im_main_title = expression(paste("Inorganic Matter"))
 perc_im_y_title = expression(paste("inorganic matter", ' [%]')) 
 s + geom_violin(trim = FALSE)+
@@ -131,7 +123,7 @@ s + geom_violin(trim = FALSE)+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
 #IM vs OM
-compo=perc_om.plot
+compo = perc_om.plot
 compo$OM=compo$perc_om
 compo$perc_om=NULL
 compo$IM=perc_im.plot$perc_im
