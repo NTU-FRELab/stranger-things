@@ -200,3 +200,5 @@ ggplot(compo, aes(x=species, y=percentage, fill=component))+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
 ```
+
+#### Chlorophyll
