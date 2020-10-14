@@ -58,7 +58,8 @@ Cb = -5.43*(sf$A2-sf$A1)+21.03*(sf$A3-sf$A1)-2.66*(sf$A4-sf$A1)
 Cc = -1.67*(sf$A2-sf$A1)-7.6*(sf$A3-sf$A1)+24.52*(sf$A4-sf$A1)
 sf.res$chla.afdw = Ca*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlb.afdw = Cb*sf$V_extra/afdw  # ug chl / gafdw 
-sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw 
+sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw
+sf.res$ratio = sf.res$chlc.afdw/sf.res$chla.afdw # ratio chl c / chl a
 
 ##PROTEINS #proteins 1ML used for host by 5mL used for the zoox!!!!
 #
