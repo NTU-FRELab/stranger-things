@@ -21,7 +21,7 @@ library(corrplot)
 library(factoextra)
 library(vegan)
 library(car)
- 
+library(dplyr)
 ```
 ```{r eval = FALSE}
  
@@ -32,7 +32,7 @@ library(corrplot)
 library(factoextra)
 library(vegan)
 library(car)
- 
+library(dplyr)
 ```
 
 
@@ -217,6 +217,7 @@ s + geom_violin(trim = FALSE)+
     theme(plot.title= element_text(hjust="0.5"))+
     scale_y_continuous(limits=c(500,3000))
 ```
+
 #### Chl c
 ```{r}
 chlc.plot=sf.res[,c('species','chlc.afdw')]
@@ -232,6 +233,7 @@ s + geom_violin(trim = FALSE)+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(100,1000))
 ```
+
 #### Ratio chl c / chl a
 ```{r}
 ratio.plot=sf.res[,c('species','ratio')]
@@ -309,10 +311,16 @@ s + geom_violin(trim = FALSE)+
   theme(plot.title= element_text(hjust="0.5"))
 ```
 
-#### Isotope
-```{r}
+#### d15N & 13C
+```{r include = FALSE}
 Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
+```
 
+```{r eval = FALSE}
+Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
+```
+
+```{r}
 isoH=sf[,c('species','H15N','H13C')]
 isoA=sf[,c('species','A15N','A13C')]
 
@@ -345,3 +353,182 @@ ggscatterhist(
   ggtheme = theme_bw()
 )
 ```
+
+#### C/N ratio
+```{r}
+## Host C/N ratio
+H.CN.plot=sf[,c('species','H.C.N')]
+s=ggplot(data=H.CN.plot, aes(x=species, y=H.C.N, fill=species))
+H.CN_main_title = expression(paste("Host C/N ratio"))
+H.CN_y_title = expression(paste("ratio")) 
+s + geom_violin(trim = FALSE)+
+  geom_jitter(shape=16, position=position_jitter(0.1))+
+  labs(title= H.CN_main_title, x="Species", y=H.CN_y_title)+
+  theme_bw()+
+  theme(legend.position='none')+
+  theme(axis.text.x= element_text(face="italic"))+
+  theme(plot.title= element_text(hjust="0.5"))+
+  scale_y_continuous(limits=c(3,12))
+
+## Algal C/N ratio
+A.CN.plot=sf[,c('species','A.C.N')]
+s=ggplot(data=A.CN.plot, aes(x=species, y=A.C.N, fill=species))
+A.CN_main_title = expression(paste("Algal C/N ratio"))
+A.CN_y_title = expression(paste("ratio")) 
+s + geom_violin(trim = FALSE)+
+  geom_jitter(shape=16, position=position_jitter(0.1))+
+  labs(title= A.CN_main_title, x="Species", y=A.CN_y_title)+
+  theme_bw()+
+  theme(legend.position='none')+
+  theme(axis.text.x= element_text(face="italic"))+
+  theme(plot.title= element_text(hjust="0.5"))+
+  scale_y_continuous(limits=c(2, 8))
+```
+
+### **Data analysis**
+
+#### Dataframe for analysis
+```{r}
+# selecting variables to be analyzed
+comp=sf.res[, -which(names(sf.res) %in% c("species","depth"))]
+row.names(comp)=comp$sample_no
+comp$sample_no=NULL
+comp$lip.cont=NULL
+comp$perc_im=NULL
+comp$protH.afdw=NULL
+comp$protZ.afdw=NULL
+comp$chlb.afdw=NULL
+
+# renaming variables
+colnames(comp)[which(names(comp) == "A13C")] = "d13C.al"
+colnames(comp)[which(names(comp) == "A15N")] = "d15N.al"
+colnames(comp)[which(names(comp) == "H13C")] = "d13C.an"
+colnames(comp)[which(names(comp) == "H15N")] = "d15N.an"
+colnames(comp)[which(names(comp) == "ratio")] = "ratio.c/a"
+colnames(comp)[which(names(comp) == "perc_om")] = "OM"
+```
+
+#### Correlation
+```{r}
+comp.full = comp[complete.cases(comp),] # keep only the complete data
+mat = cor(comp.full)
+res1 = cor.mtest(comp.full, conf.level = .95) # significance test
+p_value = res1$p
+row.names(p_value) = row.names(mat)
+colnames(p_value) = colnames(mat)
+p_value[which(p_value > 0.05)] = "N.S."
+```
+
+#### Visualization
+```{r}
+col = colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+corrplot(mat, method = "color", col = col(200),
+         type = "upper",tl.cex=0.6, order = "hclust",
+         addCoef.col = "black",
+         tl.col = "black", tl.srt = 90,
+         p.mat=res1$p,sig.level = 0.05,
+         diag = FALSE, number.cex=0.6)
+```
+
+#### PCA
+```{r}
+var1=dim(comp.full)[2]
+pca=prcomp(comp.full, scale=T)
+# (scale=TRUE) : scales the variables so that all have unit variance . This is necessary if the data has different units
+
+fviz_pca_biplot(pca,
+                label='var',
+                geom.ind = "point",
+                repel = TRUE,
+                pointshape = 21,
+                pointsize = 3,
+                fill.ind = na.omit(sf.res)$species,
+                col.ind = "black",
+                #habillage=na.omit(sf.res)$species,
+                addEllipses=TRUE, ellipse.level=0.8,
+                legend.title = "Species")
+```
+
+##### PERMANOVA
+```{r}
+Genus = rep(c("Stereonephthya", "Litophyton"), c(8, 5))
+adonis(pca[["x"]] ~ Genus, permutations = 999, method = "euclidean") # p < 0.01
+```
+
+##### Dispersion test
+```{r}
+mod = betadisper(d = dist(pca[["x"]], method = "euclidean"), group = Genus, type = "centroid")
+boxplot(mod)
+permutest(mod, pairwise = TRUE, permutations = 999) # ANOVA like permutation test # p < 0.001
+```
+
+#### Trait mean
+```{r}
+sf.res_tb = as_tibble(sf.res[, -2])
+Trait_mean = sf.res_tb %>% group_by(species) %>% summarise_all (mean, na.rm = T)
+```
+
+#### Trait sd
+```{r}
+Trait_sd = sf.res_tb %>% group_by(species) %>% summarise_all (sd, na.rm = T)
+```
+
+#### Interspecific comparison
+```{r}
+## OM *** ##
+leveneTest(perc_om ~ species, sf.res) # p = 0.621
+t.test(perc_om ~ species, sf.res, na.rm = T) # p = 1.373e-06
+
+## Cell ##
+leveneTest(cell.afdw ~ species, sf.res) # p = 0.2161
+t.test(cell.afdw ~ species, sf.res, na.rm = T) # p = 0.07903
+
+## Chlorophyll a ** ##
+leveneTest(chla.afdw ~ species, sf.res) # p = 0.02045
+t.test(chla.afdw ~ species, sf.res, na.rm = T) # p = 0.003353
+ 
+## Chlorophyll c ##
+leveneTest(chlc.afdw ~ species, sf.res) # p = 0.1271
+t.test(chlc.afdw ~ species, sf.res, na.rm = T) # p = 0.5672
+
+## Chlorophyll c/a *** ##
+leveneTest(ratio ~ species, sf.res) # p = 0.2757
+t.test(ratio ~ species, sf.res, na.rm = T) # p = 5.224e-08
+
+## Chlorophyll a/ cell *** ##
+leveneTest(sf.res$chla.afdw/sf.res$cell.afdw, sf.res$species) # p = 0.07025
+t.test(sf.res[1:10, ]$chla.afdw/sf.res[1:10, ]$cell.afdw, sf.res[11:20, ]$chla.afdw/sf.res[11:20, ]$cell.afdw, na.rm = T)
+# p = 0.0001801
+
+## Protein ##
+leveneTest(prot.afdw ~ species, sf.res) # p = 0.1995
+t.test(prot.afdw ~ species, sf.res, na.rm = T) # p = 0.2195
+
+## Lipid *** ##
+leveneTest(lip.afdw ~ species, sf.res) # p = 0.3825
+t.test(lip.afdw ~ species, sf.res, na.rm = T) # p = 1.371e-07
+# Host d15N
+leveneTest(H15N ~ species, sf.res) # p = 0.1438
+t.test(H15N ~ species, sf.res, na.rm = T) # p = 2.909e-06 ***
+
+# Host d13C
+leveneTest(H13C ~ species, sf.res) # p = 0.3572
+t.test(H13C ~ species, sf.res, na.rm = T) # p = 0.01995 *
+
+# Algae d15N
+leveneTest(A15N ~ species, sf.res) # p = 0.8417
+t.test(A15N ~ species, sf.res, na.rm = T) # p = 0.005131 **
+
+# Algae d13C
+leveneTest(A13C ~ species, sf.res) # p = 0.002009
+t.test(A13C ~ species, sf.res, na.rm = T) # p = 0.3507
+
+# Host C/N ratio
+leveneTest(H.C.N ~ species, sf.res) # p = 0.02613 *
+t.test(H.C.N ~ species, sf.res, na.rm = T) # p = 0.07908
+
+# Algae C/N ratio
+leveneTest(A.C.N ~ species, sf.res) # p = 0.3416
+t.test(A.C.N ~ species, sf.res, na.rm = T) # p = 0.1765
+```
+

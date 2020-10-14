@@ -58,7 +58,8 @@ Cb = -5.43*(sf$A2-sf$A1)+21.03*(sf$A3-sf$A1)-2.66*(sf$A4-sf$A1)
 Cc = -1.67*(sf$A2-sf$A1)-7.6*(sf$A3-sf$A1)+24.52*(sf$A4-sf$A1)
 sf.res$chla.afdw = Ca*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlb.afdw = Cb*sf$V_extra/afdw  # ug chl / gafdw 
-sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw 
+sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw
+sf.res$ratio = sf.res$chlc.afdw/sf.res$chla.afdw # ratio chl c / chl a
 
 ##PROTEINS #proteins 1ML used for host by 5mL used for the zoox!!!!
 #
@@ -238,7 +239,7 @@ s + geom_violin(trim = FALSE)+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
 ## ISOTOPES
-Sys.setlocale("LC_ALL","English")
+Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
 
 isoH=sf[,c('species','H15N','H13C')]
 isoA=sf[,c('species','A15N','A13C')]
@@ -302,39 +303,6 @@ s + geom_violin(trim = FALSE)+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(2, 8))
 
-## Litophyton C/N ratio
-# Plot
-Lito.CN.plot=sf[11:20, c('H.C.N', 'A.C.N')]
-Lito.CN.plot = data.frame(c(Lito.CN.plot$H.C.N, Lito.CN.plot$A.C.N))
-colnames(Lito.CN.plot) = "C.N"
-Lito.CN.plot$type = rep(c("Host", "Algae"), each = 10)
-s=ggplot(data = na.omit(Lito.CN.plot), aes(x=type, y= C.N, fill = type))
-Lito.CN_main_title = expression(paste("Litophyton C/N ratio"))
-Lito.CN_y_title = expression(paste("ratio")) 
-s + geom_violin(trim = FALSE)+
-  geom_jitter(shape=16, position=position_jitter(0.1))+
-  labs(title=Lito.CN_main_title, x="Fraction", y=Lito.CN_y_title)+
-  theme_bw()+
-  theme(legend.position='none')+
-  theme(plot.title= element_text(hjust="0.5"))+
-  scale_y_continuous(limits=c(3,10.5))
-
-## Stereonephtyha C/N ratio
-# Plot
-Ster.CN.plot=sf[1:10, c('H.C.N', 'A.C.N')]
-Ster.CN.plot = data.frame(c(Ster.CN.plot$H.C.N, Ster.CN.plot$A.C.N))
-colnames(Ster.CN.plot) = "C.N"
-Ster.CN.plot$type = rep(c("Host", "Algae"), each = 10)
-s=ggplot(data = na.omit(Ster.CN.plot), aes(x=type, y= C.N, fill = type))
-Ster.CN_main_title = expression(paste("Stereonephtyha C/N ratio"))
-Ster.CN_y_title = expression(paste("ratio")) 
-s + geom_violin(trim = FALSE)+
-  geom_jitter(shape=16, position=position_jitter(0.1))+
-  labs(title=Ster.CN_main_title, x="Fraction", y=Ster.CN_y_title)+
-  theme_bw()+
-  theme(legend.position='none')+
-  theme(plot.title= element_text(hjust="0.5"))+
-  scale_y_continuous(limits=c(3,11))
 
 ## MULTIVARIATES
 #selection variables
@@ -359,9 +327,9 @@ colnames(comp)[which(names(comp) == "perc_om")] = "OM"
 
 
 #correlation
-comp.full<-comp[complete.cases(comp),]
-mat<-cor(comp.full)
-res1 <- cor.mtest(comp.full, conf.level = .95)
+comp.full = comp[complete.cases(comp),]
+mat = cor(comp.full)
+res1 = cor.mtest(comp.full, conf.level = .95) # significance test
 
 p_value = res1$p
 row.names(p_value) = row.names(mat)
@@ -412,11 +380,6 @@ Trait_mean = sf.res_tb %>% group_by(species) %>% summarise_all (mean, na.rm = T)
 ## SD ##
 Trait_sd = sf.res_tb %>% group_by(species) %>% summarise_all (sd, na.rm = T)
 
-## Normality test ##
-Norm = apply(sf.res[, 4:23], MARGIN = 2, FUN = shapiro.test)
-# chla, Ratio, Protein, and Lipid are non-parametric.
-
-
 ## OM *** ##
 leveneTest(perc_om ~ species, sf.res) # p = 0.621
 t.test(perc_om ~ species, sf.res, na.rm = T) # p = 1.373e-06
@@ -446,155 +409,30 @@ t.test(sf.res[1:10, ]$chla.afdw/sf.res[1:10, ]$cell.afdw, sf.res[11:20, ]$chla.a
 leveneTest(prot.afdw ~ species, sf.res) # p = 0.1995
 t.test(prot.afdw ~ species, sf.res, na.rm = T) # p = 0.2195
 
-sd(sf.res[1:10, ]$prot.afdw) # Ster. 35379.63
-mean(sf.res[1:10, ]$prot.afdw) # mean =  249406.9
-sd(sf.res[11:20, ]$prot.afdw) # Lito. 120028.6 
-mean(sf.res[11:20, ]$prot.afdw) # mean = 446673.8
-
 ## Lipid *** ##
 leveneTest(lip.afdw ~ species, sf.res) # p = 0.3825
 t.test(lip.afdw ~ species, sf.res, na.rm = T) # p = 1.371e-07
 
-sd(sf.res[1:10, ]$lip.afdw) # Ster. 0.01234544
-mean(sf.res[1:10, ]$lip.afdw) # mean =  0.04580946
-sd(sf.res[11:20, ]$lip.afdw) # Lito. 0.05690472
-mean(sf.res[11:20, ]$lip.afdw) # mean = 0.2588318
-
-## Points difference between species on pca biplot ##
-pca.p = as.data.frame(pca$x[, 1:2])
-t.test(pca.p[1:8, ]$PC1, pca.p[9:13, ]$PC1) # PC1 p-value = 0.0006063 ***
-t.test(pca.p[1:8, ]$PC2, pca.p[9:13, ]$PC2) # PC2 p-value = 0.8444
-
-# Points difference within Stereonephtyha 
-t.test(pca.p[1:8, ]$PC1) # PC1 p-value = 0.0001079 ***
-t.test(pca.p[1:8, ]$PC2) # PC2 p-value = 0.6385
-
-# Points difference within Litophyton
-t.test(pca.p[9:13, ]$PC1) # PC1 p-value = 0.009392 **
-t.test(pca.p[9:13, ]$PC2) # PC2 p-value = 0.8406
-
-## Stable Isotope ##
-
-# Stereonephthya
-C.Ster.Host = sf.res[1:10, ]$H13C
-C.Ster.Algae = sf.res[1:10, ]$A13C
-N.Ster.Host = sf.res[1:10, ]$H15N
-N.Ster.Algae = sf.res[1:10, ]$A15N
-CN.Ster.Host = sf.res[1:10, ]$H.C.N
-CN.Ster.Algae = sf.res[1:10, ]$A.C.N
-
-# Litophyton
-C.Lito.Host = sf.res[11:20, ]$H13C
-C.Lito.Algae = sf.res[11:20, ]$A13C
-N.Lito.Host = sf.res[11:20, ]$H15N
-N.Lito.Algae = sf.res[11:20, ]$A15N
-CN.Lito.Host = sf.res[11:20, ]$H.C.N
-CN.Lito.Algae = sf.res[11:20, ]$A.C.N
-
-Calculation = cbind(C.Ster.Host, C.Ster.Algae, N.Ster.Host, N.Ster.Algae, CN.Ster.Host, CN.Ster.Algae, C.Lito.Host = sf.res[11:20, ]$H13C,
-      C.Lito.Algae, N.Lito.Host, N.Lito.Algae, CN.Lito.Host,  CN.Lito.Algae)
-# Mean
-apply(Calculation, 2, mean, na.rm = T)
-# SD
-apply(Calculation, 2, sd, na.rm = T)
-# intraspecific stable isotope variation
-SI.t = apply(Calculation, 2, t.test, na.rm = T)
-
-
-# Host N between Ster. & Lito
-boxplot(N.Ster.Host, N.Lito.Host, ylab = "d15N", names = c("Stereonephthya", "Litophyton"),main = "Coral Host, p(t.test) = 2.909e-06")
+# Host d15N
 leveneTest(H15N ~ species, sf.res) # p = 0.1438
 t.test(H15N ~ species, sf.res, na.rm = T) # p = 2.909e-06 ***
 
-# Host C between Ster. & Lito
-boxplot(C.Ster.Host, C.Lito.Host, ylab = "d13C", names = c("Stereonephthya", "Litophyton"), main = "Coral Host, p(t.test) = 0.01995")
+# Host d13C
 leveneTest(H13C ~ species, sf.res) # p = 0.3572
 t.test(H13C ~ species, sf.res, na.rm = T) # p = 0.01995 *
 
-# Algae C between Ster. & Lito
-boxplot(C.Ster.Algae, C.Lito.Algae, ylab = "d13C", names = c("Stereonephthya", "Litophyton"),main = "Algae, p(t.test) = 0.3507") 
-leveneTest(A13C ~ species, sf.res) # p = 0.002009
-t.test(A13C ~ species, sf.res, na.rm = T) # p = 0.3507
-
-# Algae N between Ster. & Lito
-boxplot(N.Ster.Algae, N.Lito.Algae, ylab = "d15N", names = c("Stereonephthya", "Litophyton"),main = "Algae, p(t.test) = 0.005131")
+# Algae d15N
 leveneTest(A15N ~ species, sf.res) # p = 0.8417
 t.test(A15N ~ species, sf.res, na.rm = T) # p = 0.005131 **
 
-# Lito N between Host & Algae
-boxplot(N.Lito.Host, N.Lito.Algae, ylab = "d15N", names = c("Host", "Algae"),main = "d15N Litophyton, p(t.test) = 0.8908")
-leveneTest(c(N.Lito.Host, N.Lito.Algae), group = as.factor(rep(c("H", "A"), each = 10))) # p = 0.4799
-t.test(N.Lito.Host, N.Lito.Algae, na.rm = T) # p = 0.8908
+# Algae d13C
+leveneTest(A13C ~ species, sf.res) # p = 0.002009
+t.test(A13C ~ species, sf.res, na.rm = T) # p = 0.3507
 
-# Ster N between Host & Algae 
-boxplot(N.Ster.Host, N.Ster.Algae, ylab = "d15N", names = c("Host", "Algae"),main = "d15N Stereonephthya, p(t.test) = 0.03513")
-leveneTest(c(N.Ster.Host, N.Ster.Algae), group = as.factor(rep(c("H", "A"), each = 10))) # p = 0.9817
-t.test(N.Ster.Host, N.Ster.Algae, na.rm = T) # p = 0.03513 *
-
-# Lito C between Host & Algae  
-boxplot(C.Lito.Host, C.Lito.Algae, ylab = "d13C", names = c("Host", "Algae"),main = "d13C Litophyton, p(t.test) = 0.06012")
-leveneTest(c(C.Lito.Host, C.Lito.Algae), group = as.factor(rep(c("H", "A"), each = 10))) # p = 0.2019
-t.test(C.Lito.Host, C.Lito.Algae, na.rm = T) # p = 0.06012
-
-# Ster C between Host & Algae 
-boxplot(C.Ster.Host, C.Ster.Algae, ylab = "d13C", names = c("Host", "Algae"),main = "d13C Stereonephthya, p(t.test) = 8.196e-08")
-leveneTest(c(C.Ster.Host, C.Ster.Algae), group = as.factor(rep(c("H", "A"), each = 10))) # p = 0.08355
-t.test(C.Ster.Host, C.Ster.Algae, na.rm = T) # p = 8.196e-08 ***
-
-# C/N ratio between algae
-boxplot(CN.Ster.Algae, CN.Lito.Algae, ylab = "ratio"
-        , names = c("Clade G", "Clade D")
-        , main = "Algae C/N ratio, p(t.test) = 0.1765")
-leveneTest(A.C.N ~ species, sf.res) # p = 0.3416
-t.test(A.C.N ~ species, sf.res, na.rm = T) # p = 0.1765
-
-# C/N ratio between host
-boxplot(CN.Ster.Host, CN.Lito.Host, ylab = "ratio"
-        , names = c("Stereonephthya", "Litophyton")
-        , main = "Host C/N ratio, p(t.test) = 0.07908")
+# Host C/N ratio
 leveneTest(H.C.N ~ species, sf.res) # p = 0.02613 *
 t.test(H.C.N ~ species, sf.res, na.rm = T) # p = 0.07908
 
-# C/N ratio in Ster
-boxplot(CN.Ster.Host, CN.Ster.Algae, ylab = "ratio"
-        , names = c("Host", "Clade G")
-        , main = "Stereonephthya C/N ratio, p(t.test) = 0.0004")
-leveneTest(c(CN.Ster.Host, CN.Ster.Algae), group = as.factor(rep(c("H", "A"), each = 10))) # p = 0.02359 *
-t.test(CN.Ster.Host, CN.Ster.Algae, na.rm = T) # p = 0.0004268 ***
-
-# C/N ratio in Lito
-boxplot(CN.Lito.Host, CN.Lito.Algae, ylab = "ratio"
-        , names = c("Host", "Clade D")
-        , main = "Litophyton C/N ratio, p(t.test) = 0.001051")
-leveneTest(c(CN.Lito.Host, CN.Lito.Algae), group = as.factor(rep(c("H", "A"), each = 10))) # p = 0.3736
-t.test(CN.Lito.Host, CN.Lito.Algae, na.rm = T) # p = 0.001051 **
-
-# Combining species and host/algae
-Sep.data = na.omit(sf.res[, c(1, 4:7)])
-colnames(Sep.data) = c("species", "d15N", "d13C", "A15N", "A13C")
-Sep.data.H = Sep.data[, c(1:3)]
-Sep.data.A = Sep.data[, c(1, 4, 5)]
-colnames(Sep.data.A) = c("species", "d15N", "d13C")
-Sep.data = rbind(Sep.data.H, Sep.data.A)
-Sep.data$Type = rep(c("Host", "Algae"), each = 13)
-plot(d15N ~ d13C, Sep.data, xlab = "d13C", ylab = "d15N",
-     col = ifelse(species == "Stereonephthya Sp.", 'red', 'blue'),
-     pch = ifelse(Type == "Host", 17, 16))
-legend("topleft", pch = c(17, 16, 17, 16),
-       col = c('red', 'red', 'blue', 'blue'),
-       legend=c("Stereonephthya", "Clade G", "Litophyton", "Clade D"), cex = 1, bty = 'n', y.intersp = 0.3)
-
-# delta (Host - Algae)
-sf.res$HA.C = sf.res$H13C - sf.res$A13C
-sf.res$HA.N = sf.res$H15N - sf.res$A15N
-  
-plot(HA.N ~ HA.C, sf.res,
-     xlab = "d13C", ylab = "d15N",
-     col = ifelse(species == "Stereonephthya Sp.", 'red', 'blue'),
-     pch = 17,
-     main = "Host-Algae, p(t.test) = 8.196e-08")
-# C difference between species
-t.test(sf.res[1:10, ]$HA.C, sf.res[11:20, ]$HA.C, paired = F, alternative = "two.sided") # 0.001873
-# N difference between species
-t.test(sf.res[1:10, ]$HA.N, sf.res[11:20, ]$HA.N, paired = F, alternative = "two.sided") # 0.0708
-
+# Algae C/N ratio
+leveneTest(A.C.N ~ species, sf.res) # p = 0.3416
+t.test(A.C.N ~ species, sf.res, na.rm = T) # p = 0.1765
