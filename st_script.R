@@ -185,7 +185,7 @@ s + geom_violin(trim = FALSE)+
 # Plot
 cell.plot=sf.res[,c('species','cell.afdw')]
 s=ggplot(data=cell.plot, aes(x=species, y=cell.afdw, fill=species))
-cell_main_title = expression(paste("Algal Cell Density"))
+cell_main_title = expression(paste("Symbiont cells"))
 cell_y_title = expression(paste("cell", ' [','count ', afdw^-1,']')) 
 s + geom_violin(trim = FALSE)+
   geom_jitter(shape=16, position=position_jitter(0.1))+
