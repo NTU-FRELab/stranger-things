@@ -316,14 +316,19 @@ comp$protZ.afdw=NULL
 comp$chlb.afdw=NULL
 
 
-colnames(comp)[which(names(comp) == "A13C")] = "d13C.al"
-colnames(comp)[which(names(comp) == "A15N")] = "d15N.al"
-colnames(comp)[which(names(comp) == "H13C")] = "d13C.an"
-colnames(comp)[which(names(comp) == "H15N")] = "d15N.an"
-colnames(comp)[which(names(comp) == "ratio")] = "ratio.c/a"
+colnames(comp)[which(names(comp) == "A13C")] = "algae d13C"
+colnames(comp)[which(names(comp) == "A15N")] = "algae d15N"
+colnames(comp)[which(names(comp) == "H13C")] = "host d13C"
+colnames(comp)[which(names(comp) == "H15N")] = "host d15N"
+colnames(comp)[which(names(comp) == "ratio")] = "ratio chl c / chl a"
 colnames(comp)[which(names(comp) == "perc_om")] = "OM"
-
-
+colnames(comp)[which(names(comp) == "H.C.N")] = "host C:N"
+colnames(comp)[which(names(comp) == "A.C.N")] = "algae C:N"
+colnames(comp)[which(names(comp) == "cell.afdw")] = "symbiont cells"
+colnames(comp)[which(names(comp) == "chla.afdw")] = "chl a"
+colnames(comp)[which(names(comp) == "chlc.afdw")] = "chl c"
+colnames(comp)[which(names(comp) == "prot.afdw")] = "total lipid"
+colnames(comp)[which(names(comp) == "lip.afdw")] = "total protein"
 
 
 #correlation
