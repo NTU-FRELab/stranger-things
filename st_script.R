@@ -185,7 +185,7 @@ s + geom_violin(trim = FALSE)+
 # Plot
 cell.plot=sf.res[,c('species','cell.afdw')]
 s=ggplot(data=cell.plot, aes(x=species, y=cell.afdw, fill=species))
-cell_main_title = expression(paste("Symbiont cells"))
+cell_main_title = expression(paste("Algal symbioont content"))
 cell_y_title = expression(paste("cell", ' [','count ', afdw^-1,']')) 
 s + geom_violin(trim = FALSE)+
   geom_jitter(shape=16, position=position_jitter(0.1))+
@@ -324,7 +324,7 @@ colnames(comp)[which(names(comp) == "ratio")] = "ratio chl c / chl a"
 colnames(comp)[which(names(comp) == "perc_om")] = "OM"
 colnames(comp)[which(names(comp) == "H.C.N")] = "host C:N"
 colnames(comp)[which(names(comp) == "A.C.N")] = "algae C:N"
-colnames(comp)[which(names(comp) == "cell.afdw")] = "symbiont cells"
+colnames(comp)[which(names(comp) == "cell.afdw")] = "Algal symbioont content"
 colnames(comp)[which(names(comp) == "chla.afdw")] = "chl a"
 colnames(comp)[which(names(comp) == "chlc.afdw")] = "chl c"
 colnames(comp)[which(names(comp) == "prot.afdw")] = "total lipid"
