@@ -1,33 +1,70 @@
-#################################
-## Physiological comparison SC ##
-#################################
+---
+title: "Stranger Things"
+author: "Hsu et al."
+date: "2020/10/14"
+output: html_document
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data and script for data analysis of Hsu et al. Stranger things: physiological performance of two octocorals associated with singular Symbioniaceae in a marginal coral community from northern Taiwan - [FRElab](https://www.dipintothereef.com/) 
+
+### Run all the packages needed
+```{r include = FALSE}
+ 
 library(ggplot2)
 library(tidyr)
 library(ggpubr)
 library(corrplot)
 library(factoextra)
-library (vegan)
-library (car)
+library(vegan)
+library(car)
+library(dplyr)
+```
+```{r eval = FALSE}
+ 
+library(ggplot2)
+library(tidyr)
+library(ggpubr)
+library(corrplot)
+library(factoextra)
+library(vegan)
+library(car)
+library(dplyr)
+```
 
-rm(list=ls())
 
-###DATASETS 
-##raw
+### Use `rm(list=ls())` to clear the environment
+
+### **Datasets**
+```{r}
+# raw data
 sf = read.table('Data/st_data.txt', sep='\t', header=T)
-##results
-sf.res = sf[,1:3]
 
-###PREPARATION
-## ISOTOPES
+# creating a dataframe for the coming results
+sf.res = sf[,1:3]
+```
+
+### **Traits**
+
+#### Isotope
+```{r}
+# H: coral host
+# A: algae 
+# C.N: carbon to nitrogen ratio
 sf.res$H15N = sf$H15N
 sf.res$H13C = sf$H13C
 sf.res$A15N = sf$A15N
 sf.res$A13C = sf$A13C
 sf.res$H.C.N = sf$H.C.N
 sf.res$A.C.N = sf$A.C.N
+```
 
-## DW, AFDW, OM AND IM
+#### DW, AFDW, OM and IM
+
+```{r}
 # wo:weight of filter
 # w1:weight of filter + 1mL tissue
 # w2:weight of filter + 1mL tissue (ashed)
@@ -38,10 +75,12 @@ afdw = sf$w1-sf$w2 # ash free dry weight tissue in g.mL-1
 dwsc = sf$w4-sf$w3 # dry weight sclerite in g.mL-1
 sf.res$perc_om = afdw/dw*100 # Organic Matter (%)
 sf.res$perc_im = 100-sf.res$perc_om # Inorganic Matter (%)
+```
+#### Alagal cell density
 
-## ALGAL CELL DENSITY
+```{r}
 # zX_X:cell counting 5 x 1 mm2 repeated five time
-# dil:dilution 
+# dil:dilution
 z1 = rowMeans(sf[,c('z1_1','z1_2', 'z1_3','z1_4','z1_5')])
 z2 = rowMeans(sf[,c('z2_1','z2_2', 'z2_3','z2_4','z2_5')])
 z3 = rowMeans(sf[,c('z3_1','z3_2', 'z3_3','z3_4','z3_5')])
@@ -49,27 +88,32 @@ z4 = rowMeans(sf[,c('z4_1','z4_2', 'z4_3','z4_4','z4_5')])
 z5 = rowMeans(sf[,c('z5_1','z5_2', 'z5_3','z5_4','z5_5')])
 count = (z1+z2+z3+z4+z5)*10000/(5*(1/sf$dil)) # Algal cell in 1 mL 
 sf.res$cell.afdw = count/afdw # algal cell.gafdw-1 
+```
+#### Chlorophyll
 
-
-## CHLOROPHYLLS
-
-Ca = 11.85*(sf$A2-sf$A1)-1.54*(sf$A3-sf$A1)-0.08*(sf$A4-sf$A1)
-Cb = -5.43*(sf$A2-sf$A1)+21.03*(sf$A3-sf$A1)-2.66*(sf$A4-sf$A1)
-Cc = -1.67*(sf$A2-sf$A1)-7.6*(sf$A3-sf$A1)+24.52*(sf$A4-sf$A1)
+```{r}
+Ca = 11.85*(sf$A2-sf$A1)-1.54*(sf$A3-sf$A1)-0.08*(sf$A4-sf$A1) # chl a
+Cb = -5.43*(sf$A2-sf$A1)+21.03*(sf$A3-sf$A1)-2.66*(sf$A4-sf$A1) # chl b
+Cc = -1.67*(sf$A2-sf$A1)-7.6*(sf$A3-sf$A1)+24.52*(sf$A4-sf$A1) # chl c
+# V_extra: volume of extraction solution (mL)
 sf.res$chla.afdw = Ca*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlb.afdw = Cb*sf$V_extra/afdw  # ug chl / gafdw 
 sf.res$chlc.afdw = Cc*sf$V_extra/afdw  # ug chl / gafdw
 sf.res$ratio = sf.res$chlc.afdw/sf.res$chla.afdw # ratio chl c / chl a
+```
 
-##PROTEINS #proteins 1ML used for host by 5mL used for the zoox!!!!
-#
-#
-abs.prot.zoox1.corr = sf$abs.prot.zoox1-sf$abs.protZ.blank # correction zoox absorbance with blank
-abs.prot.zoox2.corr = sf$abs.prot.zoox2-sf$abs.protZ.blank # correction zoox absorbance with blank
-abs.prot.zoox3.corr = sf$abs.prot.zoox3-sf$abs.protZ.blank # correction zoox absorbance with blank
-abs.prot.host1.corr = sf$abs.prot.host1-sf$abs.protH.blank # correction host absorbance with blank
-abs.prot.host2.corr = sf$abs.prot.host2-sf$abs.protH.blank # correction host absorbance with blank
-abs.prot.host3.corr = sf$abs.prot.host3-sf$abs.protH.blank # correction host absorbance with blank
+#### Protein
+
+```{r}
+# correction zoox (algae) absorbance with blank
+abs.prot.zoox1.corr = sf$abs.prot.zoox1-sf$abs.protZ.blank 
+abs.prot.zoox2.corr = sf$abs.prot.zoox2-sf$abs.protZ.blank
+abs.prot.zoox3.corr = sf$abs.prot.zoox3-sf$abs.protZ.blank
+abs.prot.host1.corr = sf$abs.prot.host1-sf$abs.protH.blank
+abs.prot.host2.corr = sf$abs.prot.host2-sf$abs.protH.blank
+abs.prot.host3.corr = sf$abs.prot.host3-sf$abs.protH.blank
+
+# substitute absorbance into trichromatic equations (Jeffrey and Humphrey, 1975)
 prot.zoox.1 = sf$STCZX4*abs.prot.zoox1.corr^4+sf$STCZX3*abs.prot.zoox1.corr^3+sf$STCZX2*abs.prot.zoox1.corr^2+sf$STCZX1*abs.prot.zoox1.corr+sf$STCZE # conc.zoox1.SDS (ug mL-1)
 prot.zoox.2 = sf$STCZX4*abs.prot.zoox2.corr^4+sf$STCZX3*abs.prot.zoox2.corr^3+sf$STCZX2*abs.prot.zoox2.corr^2+sf$STCZX1*abs.prot.zoox2.corr+sf$STCZE # conc.zoox2.SDS (ug mL-1)
 prot.zoox.3 = sf$STCZX4*abs.prot.zoox3.corr^4+sf$STCZX3*abs.prot.zoox3.corr^3+sf$STCZX2*abs.prot.zoox3.corr^2+sf$STCZX1*abs.prot.zoox3.corr+sf$STCZE # conc.zoox3.SDS (ug mL-1)
@@ -77,28 +121,41 @@ prot.host.1 = sf$STCHX4*abs.prot.host1.corr^4+sf$STCHX3*abs.prot.host1.corr^3+sf
 prot.host.2 = sf$STCHX4*abs.prot.host2.corr^4+sf$STCHX3*abs.prot.host2.corr^3+sf$STCHX2*abs.prot.host2.corr^2+sf$STCHX1*abs.prot.host2.corr+sf$STCHE # conc.host2 (ug mL-1)
 prot.host.3 = sf$STCHX4*abs.prot.host3.corr^4+sf$STCHX3*abs.prot.host3.corr^3+sf$STCHX2*abs.prot.host3.corr^2+sf$STCHX1*abs.prot.host3.corr+sf$STCHE # conc.host3 (ug mL-1)
 
+# initial concentration of algal protein
 sf.res$protZ.afdw = apply(rbind(prot.zoox.1,prot.zoox.2,prot.zoox.3),2,mean,na.rm = TRUE)*sf$SDS1V/sf$V.prot.slurry /afdw # ug prot/g afdw  
-# x2 (SDS) because  previous solution is  ug/ml | vol centrifuged (5ml) | afdw (g/ml) 
-sf.res$protH.afdw = apply(rbind(prot.host.1,prot.host.2,prot.host.3),2,mean,na.rm = TRUE)/afdw # ug prot / gafdw  
+# SDS1V = 2 mL SDS (added to release of algal protein)
+# V.prot.slurry = 5 mL (original volume being centrifuged) 
 
+# initial concentration of host protein
+sf.res$protH.afdw = apply(rbind(prot.host.1,prot.host.2,prot.host.3),2,mean,na.rm = TRUE)/afdw # ug prot / gafdw
+# no dilution
+
+# total protein
 sf.res$prot.afdw = sf.res$protH.afdw + sf.res$protZ.afdw
-# sf.res$prot_per = sf.res$prot.afdw * afdw / dw / 1000
+```
 
-
-##LIPIDS
+#### Lipid
+```{r}
 # w0_l: dish
 # wt_l: dish + total sample
 # w1_l: dish + subsample
+# wplate0: dish
+# wplate1: dish + lipid
 dw.lip10 = sf$w1_l - sf$w0_l
 dw.lip100 = sf$wt_l-sf$w0_l
-afdw.lip100 = dw.lip100*(sf.res$perc_om/100)
+afdw.lip100 = dw.lip100*(sf.res$perc_om/100) # using OM percentage to convert dw into afdw
+
+# total lipid amounts
 sf.res$lip.cont = (sf$wplate1-sf$wplate0)*(dw.lip100/(dw.lip100-dw.lip10)) # g of lipid in 100% tissue
+
+# total lipid concentration
 sf.res$lip.afdw = sf.res$lip.cont/afdw.lip100 # g lipid / gafdw
+```
 
-### PLOT ###
+### **Plot**
 
-## OM $ IM
-#OM
+#### OM
+```{r}
 perc_om.plot = sf.res[,c('species','perc_om')]
 s = ggplot(data=perc_om.plot, aes(x=species, y=perc_om, fill=species))
 perc_om_main_title = expression(paste("Organic Matter"))
@@ -110,7 +167,10 @@ s + geom_violin(trim = FALSE)+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
-#IM
+```
+
+#### IM
+```{r}
 perc_im.plot=sf.res[,c('species','perc_im')]
 s = ggplot(data=perc_im.plot, aes(x=species, y=perc_im, fill=species))
 perc_im_main_title = expression(paste("Inorganic Matter"))
@@ -122,7 +182,10 @@ s + geom_violin(trim = FALSE)+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
-#IM vs OM
+```
+
+##### IM vs OM
+```{r}
 compo = perc_om.plot
 compo$OM=compo$perc_om
 compo$perc_om=NULL
@@ -137,9 +200,10 @@ ggplot(compo, aes(x=species, y=percentage, fill=component))+
   labs(title= "Tissue composition", x="Species", y="Percentage (%)")+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
+```
 
-## CHLOROPHYLL
-# chl a
+#### Chl a
+```{r}
 chla.plot=sf.res[,c('species','chla.afdw')]
 s=ggplot(data=chla.plot, aes(x=species, y=chla.afdw, fill=species))
 chla_main_title = expression(paste("Chlorophyll", italic(" a")))
@@ -152,8 +216,10 @@ s + geom_violin(trim = FALSE)+
     theme(axis.text.x= element_text(face="italic"))+
     theme(plot.title= element_text(hjust="0.5"))+
     scale_y_continuous(limits=c(500,3000))
+```
 
-# chl c
+#### Chl c
+```{r}
 chlc.plot=sf.res[,c('species','chlc.afdw')]
 s=ggplot(data=chlc.plot, aes(x=species, y=chlc.afdw, fill=species))
 chla_main_title = expression(paste("Chlorophyll", italic(" c")))
@@ -166,8 +232,10 @@ s + geom_violin(trim = FALSE)+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(100,1000))
+```
 
-# ratio
+#### Ratio chl c / chl a
+```{r}
 ratio.plot=sf.res[,c('species','ratio')]
 s=ggplot(data=ratio.plot, aes(x=species, y=ratio, fill=species))
 ratio_main_title = expression(paste("Ratio chlorophylls", italic(" c/a")))
@@ -180,12 +248,13 @@ s + geom_violin(trim = FALSE)+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(0.2,0.6))
+```
 
-## ALGAL CELL DENSITY
-# Plot
+#### Algal cell density
+```{r}
 cell.plot=sf.res[,c('species','cell.afdw')]
 s=ggplot(data=cell.plot, aes(x=species, y=cell.afdw, fill=species))
-cell_main_title = expression(paste("Algal symbioont content"))
+cell_main_title = expression(paste("Algal Cell Density"))
 cell_y_title = expression(paste("cell", ' [','count ', afdw^-1,']')) 
 s + geom_violin(trim = FALSE)+
   geom_jitter(shape=16, position=position_jitter(0.1))+
@@ -195,9 +264,10 @@ s + geom_violin(trim = FALSE)+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(0,1.0e+09))
+```
 
-## Chl a / cell
-# Plot
+#### Chl a per cell
+```{r}
 a.cell.plot=sf.res[,c('species','cell.afdw', 'chla.afdw')]
 s=ggplot(data=a.cell.plot, aes(x=species, y=chla.afdw/cell.afdw, fill=species))
 a.cell_main_title = expression(paste("Chlorophyll", italic(" a"), " per cell"))
@@ -209,10 +279,10 @@ s + geom_violin(trim = FALSE)+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
+```
 
-
-## PROTEINS
-# Plot
+#### Protein
+```{r}
 prot.plot=sf.res[,c('species','prot.afdw')]
 s=ggplot(data=prot.plot, aes(x=species, y=prot.afdw, fill=species))
 prot_main_title = expression(paste("Protein"))
@@ -224,9 +294,10 @@ s + geom_violin(trim = FALSE)+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
+```
 
-## LIPIDS
-# Plot
+#### Lipid
+```{r}
 lip.plot=sf.res[,c('species','lip.afdw')]
 s=ggplot(data=lip.plot, aes(x=species, y=lip.afdw, fill=species))
 lip_main_title = expression(paste("Lipid"))
@@ -238,9 +309,18 @@ s + geom_violin(trim = FALSE)+
   theme(legend.position='none')+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))
-## ISOTOPES
-Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
+```
 
+#### d15N & 13C
+```{r include = FALSE}
+Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
+```
+
+```{r eval = FALSE}
+Sys.setlocale("LC_ALL","English") # to successfully display "delta" symbol
+```
+
+```{r}
 isoH=sf[,c('species','H15N','H13C')]
 isoA=sf[,c('species','A15N','A13C')]
 
@@ -272,9 +352,11 @@ ggscatterhist(
   xlim=c(-23,-17),
   ggtheme = theme_bw()
 )
+```
 
+#### C/N ratio
+```{r}
 ## Host C/N ratio
-# Plot
 H.CN.plot=sf[,c('species','H.C.N')]
 s=ggplot(data=H.CN.plot, aes(x=species, y=H.C.N, fill=species))
 H.CN_main_title = expression(paste("Host C/N ratio"))
@@ -289,7 +371,6 @@ s + geom_violin(trim = FALSE)+
   scale_y_continuous(limits=c(3,12))
 
 ## Algal C/N ratio
-# Plot
 A.CN.plot=sf[,c('species','A.C.N')]
 s=ggplot(data=A.CN.plot, aes(x=species, y=A.C.N, fill=species))
 A.CN_main_title = expression(paste("Algal C/N ratio"))
@@ -302,10 +383,13 @@ s + geom_violin(trim = FALSE)+
   theme(axis.text.x= element_text(face="italic"))+
   theme(plot.title= element_text(hjust="0.5"))+
   scale_y_continuous(limits=c(2, 8))
+```
 
+### **Data analysis**
 
-## MULTIVARIATES
-#selection variables
+#### Dataframe for analysis
+```{r}
+# selecting variables to be analyzed
 comp=sf.res[, -which(names(sf.res) %in% c("species","depth"))]
 row.names(comp)=comp$sample_no
 comp$sample_no=NULL
@@ -315,33 +399,28 @@ comp$protH.afdw=NULL
 comp$protZ.afdw=NULL
 comp$chlb.afdw=NULL
 
-
-colnames(comp)[which(names(comp) == "A13C")] = "algae d13C"
-colnames(comp)[which(names(comp) == "A15N")] = "algae d15N"
-colnames(comp)[which(names(comp) == "H13C")] = "host d13C"
-colnames(comp)[which(names(comp) == "H15N")] = "host d15N"
-colnames(comp)[which(names(comp) == "ratio")] = "ratio chl c / chl a"
+# renaming variables
+colnames(comp)[which(names(comp) == "A13C")] = "d13C.al"
+colnames(comp)[which(names(comp) == "A15N")] = "d15N.al"
+colnames(comp)[which(names(comp) == "H13C")] = "d13C.an"
+colnames(comp)[which(names(comp) == "H15N")] = "d15N.an"
+colnames(comp)[which(names(comp) == "ratio")] = "ratio.c/a"
 colnames(comp)[which(names(comp) == "perc_om")] = "OM"
-colnames(comp)[which(names(comp) == "H.C.N")] = "host C:N"
-colnames(comp)[which(names(comp) == "A.C.N")] = "algae C:N"
-colnames(comp)[which(names(comp) == "cell.afdw")] = "Algal symbioont content"
-colnames(comp)[which(names(comp) == "chla.afdw")] = "chl a"
-colnames(comp)[which(names(comp) == "chlc.afdw")] = "chl c"
-colnames(comp)[which(names(comp) == "prot.afdw")] = "total lipid"
-colnames(comp)[which(names(comp) == "lip.afdw")] = "total protein"
+```
 
-
-#correlation
-comp.full = comp[complete.cases(comp),]
+#### Correlation
+```{r}
+comp.full = comp[complete.cases(comp),] # keep only the complete data
 mat = cor(comp.full)
 res1 = cor.mtest(comp.full, conf.level = .95) # significance test
-
 p_value = res1$p
 row.names(p_value) = row.names(mat)
 colnames(p_value) = colnames(mat)
 p_value[which(p_value > 0.05)] = "N.S."
+```
 
-#visualisation
+#### Visualization
+```{r}
 col = colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
 corrplot(mat, method = "color", col = col(200),
          type = "upper",tl.cex=0.6, order = "hclust",
@@ -349,7 +428,10 @@ corrplot(mat, method = "color", col = col(200),
          tl.col = "black", tl.srt = 90,
          p.mat=res1$p,sig.level = 0.05,
          diag = FALSE, number.cex=0.6)
-#pca
+```
+
+#### PCA
+```{r}
 var1=dim(comp.full)[2]
 pca=prcomp(comp.full, scale=T)
 # (scale=TRUE) : scales the variables so that all have unit variance . This is necessary if the data has different units
@@ -365,26 +447,34 @@ fviz_pca_biplot(pca,
                 #habillage=na.omit(sf.res)$species,
                 addEllipses=TRUE, ellipse.level=0.8,
                 legend.title = "Species")
-# PERMANOVA
+```
+
+##### PERMANOVA
+```{r}
 Genus = rep(c("Stereonephthya", "Litophyton"), c(8, 5))
 adonis(pca[["x"]] ~ Genus, permutations = 999, method = "euclidean") # p < 0.01
-# dispersion test
+```
+
+##### Dispersion test
+```{r}
 mod = betadisper(d = dist(pca[["x"]], method = "euclidean"), group = Genus, type = "centroid")
 boxplot(mod)
 permutest(mod, pairwise = TRUE, permutations = 999) # ANOVA like permutation test # p < 0.001
+```
 
-###################
-## Data Analysis ##
-###################
-
-## Mean ##
-library(dplyr)
+#### Trait mean
+```{r}
 sf.res_tb = as_tibble(sf.res[, -2])
 Trait_mean = sf.res_tb %>% group_by(species) %>% summarise_all (mean, na.rm = T)
+```
 
-## SD ##
+#### Trait sd
+```{r}
 Trait_sd = sf.res_tb %>% group_by(species) %>% summarise_all (sd, na.rm = T)
+```
 
+#### Interspecific comparison
+```{r}
 ## OM *** ##
 leveneTest(perc_om ~ species, sf.res) # p = 0.621
 t.test(perc_om ~ species, sf.res, na.rm = T) # p = 1.373e-06
@@ -417,7 +507,6 @@ t.test(prot.afdw ~ species, sf.res, na.rm = T) # p = 0.2195
 ## Lipid *** ##
 leveneTest(lip.afdw ~ species, sf.res) # p = 0.3825
 t.test(lip.afdw ~ species, sf.res, na.rm = T) # p = 1.371e-07
-
 # Host d15N
 leveneTest(H15N ~ species, sf.res) # p = 0.1438
 t.test(H15N ~ species, sf.res, na.rm = T) # p = 2.909e-06 ***
@@ -441,3 +530,5 @@ t.test(H.C.N ~ species, sf.res, na.rm = T) # p = 0.07908
 # Algae C/N ratio
 leveneTest(A.C.N ~ species, sf.res) # p = 0.3416
 t.test(A.C.N ~ species, sf.res, na.rm = T) # p = 0.1765
+```
+
