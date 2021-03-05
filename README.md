@@ -1,8 +1,8 @@
 # Stranger things: organismal traits of two octocorals
 
-Data and script to replicate analyses in Hsu et al. (Accepted). Knit `Hsuetal2020_Analysis.Rmd`. If used in full or in part, please cite the original publication: 
+Data and script to replicate analyses in Hsu et al. (2020). Knit `Hsuetal2020_Analysis.Rmd`. If used in full or in part, please cite the original publication: 
 
-Hsu THT, Carlu L, Hsieh YE, Lai TYA, Wang CW, Huang CY, Yang SH, Wang PL, Sturaro N, Denis V (2020) Stranger things: organismal traits of two octocorals associated with singular Symbiodiniaceae in a high-latitude coral community from northern Taiwan. *Frontiers in Marine Science*. doi:  [10.3389/fmars.2020.606601](https://www.frontiersin.org/articles/10.3389/fmars.2020.606601/abstract)
+Hsu THT, Carlu L, Hsieh YE, Lai TYA, Wang CW, Huang CY, Yang SH, Wang PL, Sturaro N, Denis V (2020) Stranger things: organismal traits of two octocorals associated with singular Symbiodiniaceae in a high-latitude coral community from northern Taiwan. *Frontiers in Marine Science* 7:606601. doi:  [10.3389/fmars.2020.606601](https://www.frontiersin.org/articles/10.3389/fmars.2020.606601/abstract)
 
 Organismal trait data also available on [Dryad](https://doi.org/10.5061/dryad.qz612jmd7)
 
